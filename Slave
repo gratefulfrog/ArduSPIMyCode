@@ -1,0 +1,93 @@
+// ArduSPI_slave
+
+////////////////////////////////////////////////////////////////////
+///  ONLY the following line needs to be changed for each slave !!!!
+#define THIS_SLAVE 1
+//// end of slave specifics
+////////////////////////////////////////////////////////////////////
+
+#define SLAVE_ID THIS_SLAVE
+#define SELECT_PIN 2
+#define ACK_PIN 3
+#define LED_PIN 13
+
+char data;
+boolean ledON[2] = {
+  false};
+
+void setup(){
+  Serial.begin(9600);
+  while(!Serial){
+    ;
+  }  // necessary on some Arduinos, may as well keep it.
+  pinMode(SELECT_PIN, INPUT);  // we will read from the 'select' pin
+  pinMode(ACK_PIN, OUTPUT);    // and write to the ACK pin
+  digitalWrite(ACK_PIN, LOW);  // init it to NACK
+  pinMode(LED_PIN, OUTPUT);    // set LED_PIN to writing
+  digitalWrite(LED_PIN, HIGH);
+  delay(100);
+  digitalWrite(LED_PIN, LOW);  // and init to' off'
+  pinMode(5, OUTPUT);    // set RED_LED to writing
+  digitalWrite(5, LOW);  // and init to' off'
+  pinMode(6, OUTPUT);    // set BLUE_LED to writing
+  digitalWrite(6, LOW);  // and init to' off'
+
+}
+
+void loop(){
+  // all we do is get some data and do what it says
+  // if there is data, do something, otherwise loop
+  if(getData()){
+    doSomethingWithData();
+  }
+}
+
+boolean getData(){
+  // if not selected, ensure ACK_PIN is LOW and do nothing!
+  if(digitalRead(SELECT_PIN)==LOW){
+    digitalWrite(ACK_PIN,LOW);
+    return false;
+  }
+  // if we got here, the the SELECT_PIN is HIGH, 
+  // so we need to read serial
+  // first wait for something to be available to read
+  while(!Serial.available()){
+    ;
+  } 
+  // then read 1 byte into the 'data' variable
+  while(Serial.readBytes(&data,1) == 0) {
+    ;
+  }
+  // ACK the serial read
+  digitalWrite(ACK_PIN,HIGH);
+  return true;
+}
+
+// just to demonstrate that the slave is doing something  
+// change the LED state at every reception of data.
+void doSomethingWithData(){
+  switch(data){
+  case 'R':
+    changeState(5);
+    break;
+  case 'B':
+    changeState(6);
+    break;
+  }
+}
+
+void changeState(int pin)
+{
+  int x = (pin - 5); // pins starts at 5 and array at 0 so we need to 'convert' it.
+  ledON[x] = !ledON[x]; // change the state from the boolean variable
+  if(ledON[x]) // write the change to the corect pin
+  {
+    digitalWrite(pin,HIGH);
+  }
+  else
+  {
+    digitalWrite(pin,LOW); 
+  }
+}
+
+
