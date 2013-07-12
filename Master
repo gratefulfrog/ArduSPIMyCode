@@ -45,7 +45,7 @@ void loop(){
     writeSlave(i,slaveData[2][i]);
     delay(slavePause);
   }
-}
+} 
 
 void pulse(int c){
   // pulse the LED 3 * (arg+1) times
